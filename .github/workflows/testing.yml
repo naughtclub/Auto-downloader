@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download and Redownload Loop
+      - name: Download and Delete Loop
         env:
           USER: "yfnn"
           PASS: "jprbdhid"
@@ -25,11 +25,13 @@ jobs:
           fi
 
           URL=$(cat $GITHUB_WORKSPACE/link.txt | tr -d '\n\r ')
+          COUNTER=1
 
-          for i in 1 2; do
+          # Infinite loop: Download, delete, and repeat
+          while true; do
             cd /tmp/downloads
             
-            echo "--- Iteration $i: Starting download ---"
+            echo "--- Iteration $COUNTER: Starting download ---"
             
             curl --location-trusted \
               --anyauth \
@@ -44,19 +46,12 @@ jobs:
             echo "Download completed!"
             ls -lh downloaded_file
             
-            if [ $i -eq 1 ]; then
-              echo "Deleting file for redownload..."
-              rm downloaded_file
-            fi
+            echo "Deleting file to restart the cycle..."
+            rm downloaded_file
+            
+            # Increase the counter for the next loop
+            COUNTER=$((COUNTER + 1))
           done
-
-      # NEW STEP: Save the file so you can download it to your PC
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: downloaded-video
-          path: /tmp/downloads/downloaded_file
-          retention-days: 1
 
       - name: Cleanup
         if: always()
