@@ -26,7 +26,6 @@ jobs:
 
           URL=$(cat $GITHUB_WORKSPACE/link.txt | tr -d '\n\r ')
 
-          # Loop twice: download, delete, redownload
           for i in 1 2; do
             cd /tmp/downloads
             
@@ -45,12 +44,19 @@ jobs:
             echo "Download completed!"
             ls -lh downloaded_file
             
-            # Delete the file after the first download so it can be redownloaded
             if [ $i -eq 1 ]; then
               echo "Deleting file for redownload..."
               rm downloaded_file
             fi
           done
+
+      # NEW STEP: Save the file so you can download it to your PC
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-video
+          path: /tmp/downloads/downloaded_file
+          retention-days: 1
 
       - name: Cleanup
         if: always()
