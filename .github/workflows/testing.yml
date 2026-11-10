@@ -9,28 +9,31 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      # 1. Checkout the repository so the workflow can read link.txt
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Download file
+        # IMPORTANT: Hardcoding passwords in your workflow file is a security risk. 
+        # It is highly recommended to move these to GitHub Secrets (e.g., secrets.WEBDAV_USER)
+        env:
+          USER: "yfnn"
+          PASS: "jprbdhid"
         run: |
           mkdir -p /tmp/downloads
           cd /tmp/downloads
 
-          # 2. Read the URL from link.txt located in the repository root
-          # (tr removes any accidental invisible spaces or newlines from the text file)
           URL=$(cat $GITHUB_WORKSPACE/link.txt | tr -d '\n\r ')
 
           echo "Starting download from: $URL"
 
-          # 3. Execute the download
+          # Added -u "$USER:$PASS" for WebDAV authentication
           curl -L \
             --fail \
             --show-error \
             --retry 3 \
             --connect-timeout 30 \
             -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            -u "$USER:$PASS" \
             -o downloaded_file \
             "$URL"
 
