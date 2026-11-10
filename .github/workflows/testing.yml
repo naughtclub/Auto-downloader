@@ -1,14 +1,30 @@
-- name: Download file
+name: Remote File Downloader
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      # 1. Checkout the repository so the workflow can read link.txt
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download file
         run: |
           mkdir -p /tmp/downloads
           cd /tmp/downloads
 
-          # Your URL is correctly formatted now
-          URL='https://example.com/video.mp4'
+          # 2. Read the URL from link.txt located in the repository root
+          # (tr removes any accidental invisible spaces or newlines from the text file)
+          URL=$(cat $GITHUB_WORKSPACE/link.txt | tr -d '\n\r ')
 
-          echo "Starting download..."
+          echo "Starting download from: $URL"
 
-          # Removed --progress-bar so curl displays the detailed speed meter
+          # 3. Execute the download
           curl -L \
             --fail \
             --show-error \
@@ -21,3 +37,9 @@
           echo "Download completed!"
 
           ls -lh downloaded_file
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf /tmp/downloads
+          echo "Temporary files deleted."
