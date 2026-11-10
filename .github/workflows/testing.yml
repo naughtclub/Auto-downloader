@@ -17,12 +17,16 @@ jobs:
           mkdir -p /tmp/downloads
           cd /tmp/downloads
 
+          # Check if the file exists before trying to read it
+          if [ ! -f "$GITHUB_WORKSPACE/link.txt" ]; then
+            echo "Error: link.txt not found in the repository root!"
+            exit 1
+          fi
+
           URL=$(cat $GITHUB_WORKSPACE/link.txt | tr -d '\n\r ')
 
           echo "Starting download from: $URL"
 
-          # Replaced -L with --location-trusted and added --anyauth
-          # Removed the Chrome User-Agent spoofing
           curl --location-trusted \
             --anyauth \
             --fail \
