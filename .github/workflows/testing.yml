@@ -9,6 +9,10 @@ jobs:
     timeout-minutes: 360
 
     steps:
+      # This step is strictly required to read link.txt
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download file
         env:
           USER: "yfnn"
@@ -17,7 +21,6 @@ jobs:
           mkdir -p /tmp/downloads
           cd /tmp/downloads
 
-          # Check if the file exists before trying to read it
           if [ ! -f "$GITHUB_WORKSPACE/link.txt" ]; then
             echo "Error: link.txt not found in the repository root!"
             exit 1
@@ -40,3 +43,9 @@ jobs:
           echo "Download completed!"
 
           ls -lh downloaded_file
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf /tmp/downloads
+          echo "Temporary files deleted."
