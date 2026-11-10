@@ -9,18 +9,16 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      # This step is strictly required to read link.txt
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download file
+      - name: Download and Redownload Loop
         env:
           USER: "yfnn"
           PASS: "jprbdhid"
         run: |
           mkdir -p /tmp/downloads
-          cd /tmp/downloads
-
+          
           if [ ! -f "$GITHUB_WORKSPACE/link.txt" ]; then
             echo "Error: link.txt not found in the repository root!"
             exit 1
@@ -28,21 +26,31 @@ jobs:
 
           URL=$(cat $GITHUB_WORKSPACE/link.txt | tr -d '\n\r ')
 
-          echo "Starting download from: $URL"
+          # Loop twice: download, delete, redownload
+          for i in 1 2; do
+            cd /tmp/downloads
+            
+            echo "--- Iteration $i: Starting download ---"
+            
+            curl --location-trusted \
+              --anyauth \
+              --fail \
+              --show-error \
+              --retry 3 \
+              --connect-timeout 30 \
+              -u "$USER:$PASS" \
+              -o downloaded_file \
+              "$URL"
 
-          curl --location-trusted \
-            --anyauth \
-            --fail \
-            --show-error \
-            --retry 3 \
-            --connect-timeout 30 \
-            -u "$USER:$PASS" \
-            -o downloaded_file \
-            "$URL"
-
-          echo "Download completed!"
-
-          ls -lh downloaded_file
+            echo "Download completed!"
+            ls -lh downloaded_file
+            
+            # Delete the file after the first download so it can be redownloaded
+            if [ $i -eq 1 ]; then
+              echo "Deleting file for redownload..."
+              rm downloaded_file
+            fi
+          done
 
       - name: Cleanup
         if: always()
