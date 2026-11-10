@@ -1,0 +1,23 @@
+- name: Download file
+        run: |
+          mkdir -p /tmp/downloads
+          cd /tmp/downloads
+
+          # Your URL is correctly formatted now
+          URL='https://example.com/video.mp4'
+
+          echo "Starting download..."
+
+          # Removed --progress-bar so curl displays the detailed speed meter
+          curl -L \
+            --fail \
+            --show-error \
+            --retry 3 \
+            --connect-timeout 30 \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            -o downloaded_file \
+            "$URL"
+
+          echo "Download completed!"
+
+          ls -lh downloaded_file
