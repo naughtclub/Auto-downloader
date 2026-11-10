@@ -9,12 +9,7 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Download file
-        # IMPORTANT: Hardcoding passwords in your workflow file is a security risk. 
-        # It is highly recommended to move these to GitHub Secrets (e.g., secrets.WEBDAV_USER)
         env:
           USER: "yfnn"
           PASS: "jprbdhid"
@@ -26,13 +21,14 @@ jobs:
 
           echo "Starting download from: $URL"
 
-          # Added -u "$USER:$PASS" for WebDAV authentication
-          curl -L \
+          # Replaced -L with --location-trusted and added --anyauth
+          # Removed the Chrome User-Agent spoofing
+          curl --location-trusted \
+            --anyauth \
             --fail \
             --show-error \
             --retry 3 \
             --connect-timeout 30 \
-            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
             -u "$USER:$PASS" \
             -o downloaded_file \
             "$URL"
@@ -40,9 +36,3 @@ jobs:
           echo "Download completed!"
 
           ls -lh downloaded_file
-
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -rf /tmp/downloads
-          echo "Temporary files deleted."
